@@ -8,7 +8,7 @@ import fetchGallery from '../services/api';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { animateScroll as scroll, scrollSpy, scroller } from 'react-scroll';
+import { animateScroll as scroll, scrollSpy } from 'react-scroll';
 
 export default class App extends Component {
   state = {
