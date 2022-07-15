@@ -2,7 +2,7 @@ import { Component } from 'react';
 import styles from './Searchbar.module.css';
 import PropTypes from 'prop-types';
 
-import { ReactComponent as SearchIcon } from '../icons/search-icon.svg';
+import { ReactComponent as SearchIcon } from '../../icons/search-icon.svg';
 export default class Searchbar extends Component {
   state = {
     searchResult: '',
@@ -19,12 +19,8 @@ export default class Searchbar extends Component {
       return;
     }
     this.props.onSubmit(this.state.searchResult);
-    this.resetInput();
   };
 
-  resetInput = () => {
-    this.setState({ searchResult: '' });
-  };
   render() {
     return (
       <header className={styles.Searchbar}>
@@ -36,7 +32,6 @@ export default class Searchbar extends Component {
 
           <input
             onChange={this.handleChange}
-            value={this.state.searchResult}
             className={styles.SearchForm__input}
             type="text"
             autoComplete="off"

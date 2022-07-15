@@ -3,7 +3,7 @@ import Button from './Button/Button';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
-import Searchbar from '../Searchbar/Searchbar';
+import Searchbar from './Searchbar/Searchbar';
 import fetchGallery from '../services/api';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import { ToastContainer, toast } from 'react-toastify';
@@ -34,13 +34,16 @@ export default class App extends Component {
   }
 
   handleFormSubmit = searchResult => {
-    this.setState({
-      searchQuery: searchResult,
-      currentPage: 1,
-      photos: [],
-      error: null,
-      modalData: null,
-    });
+    if (searchResult !== this.state.searchQuery) {
+      this.setState({
+        searchQuery: searchResult,
+        currentPage: 1,
+        photos: [],
+        error: null,
+        modalData: null,
+        totalHits: '',
+      });
+    }
   };
 
   fetchGallery = () => {
@@ -50,12 +53,15 @@ export default class App extends Component {
     this.setState({ isLoading: true });
     setTimeout(() => {
       fetchGallery(options)
-        .then(photos => {
+        .then(data => {
+          const photos = data.hits;
+
           if (!photos.length) {
             return toast.error(
               'There is no images found with that search request'
             );
           }
+          this.setState({ totalHits: data.totalHits });
           this.setState(prevState => ({
             photos: [...prevState.photos, ...photos],
           }));
@@ -90,7 +96,8 @@ export default class App extends Component {
   };
 
   render() {
-    const { error, photos, isLoading, showModal, modalData } = this.state;
+    const { error, photos, isLoading, showModal, modalData, totalHits } =
+      this.state;
     return (
       <>
         <Searchbar onSubmit={this.handleFormSubmit} />
@@ -99,7 +106,9 @@ export default class App extends Component {
         {photos.length > 0 && (
           <>
             <ImageGallery openModal={this.onSchowModal} photos={photos} />
-            <Button onClick={this.scrollMore} LoadMore={this.loadMore} />
+            {photos.length < totalHits && (
+              <Button onClick={this.scrollMore} LoadMore={this.loadMore} />
+            )}
           </>
         )}
 

@@ -8,7 +8,7 @@ const fetchGallery = async ({ searchQuery = '', currentPage = 1 }) => {
         searchQuery
       )}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
     )
-    .then(response => response.data.hits);
+    .then(response => response.data);
 };
 
 export default fetchGallery;
