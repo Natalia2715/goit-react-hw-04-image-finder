@@ -27,6 +27,5 @@ ImageGallery.propTypes = {
       id: PropTypes.number.isRequired,
     })
   ),
-  photos: PropTypes.array.isRequired,
   openModal: PropTypes.func.isRequired,
 };
