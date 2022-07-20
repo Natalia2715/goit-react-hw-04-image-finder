@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import Button from './Button/Button';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
@@ -10,47 +10,24 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { animateScroll as scroll, scrollSpy } from 'react-scroll';
 
-export default class App extends Component {
-  state = {
-    searchQuery: '',
-    currentPage: 1,
-    photos: [],
-    error: null,
-    isLoading: false,
-    showModal: false,
-  };
+export default function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [photos, setPhotos] = useState([]);
+  const [error, setError] = useState(null);
+  const [modalData, setModalData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [totalHits, setTotalHits] = useState('');
 
-  componentDidMount() {
+  useEffect(() => {
     scrollSpy.update();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchQuery !== this.state.searchQuery ||
-      prevState.currentPage !== this.state.currentPage
-    ) {
-      this.fetchGallery();
+    if (!searchQuery) {
+      return;
     }
-  }
-
-  handleFormSubmit = searchResult => {
-    if (searchResult !== this.state.searchQuery) {
-      this.setState({
-        searchQuery: searchResult,
-        currentPage: 1,
-        photos: [],
-        error: null,
-        modalData: null,
-        totalHits: '',
-      });
-    }
-  };
-
-  fetchGallery = () => {
-    const { currentPage, searchQuery } = this.state;
     const options = { searchQuery, currentPage };
 
-    this.setState({ isLoading: true });
+    setIsLoading(true);
     setTimeout(() => {
       fetchGallery(options)
         .then(data => {
@@ -61,68 +38,68 @@ export default class App extends Component {
               'There is no images found with that search request'
             );
           }
-          this.setState({ totalHits: data.totalHits });
-          this.setState(prevState => ({
-            photos: [...prevState.photos, ...photos],
-          }));
+          setTotalHits(data.totalHits);
+          setPhotos(prevState => [...prevState, ...photos]);
         })
-        .catch(error => this.setState({ error }))
-        .finally(() => this.setState({ isLoading: false }));
+        .catch(error => setError({ error }))
+        .finally(() => setIsLoading(false));
     }, 1000);
+  }, [searchQuery, currentPage]);
+
+  const handleFormSubmit = searchResult => {
+    if (searchResult !== searchQuery) {
+      setSearchQuery(searchResult);
+      setCurrentPage(1);
+      setPhotos([]);
+      setError(null);
+      setModalData(null);
+      setTotalHits('');
+    }
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  onSchowModal = id => {
-    this.toggleModal();
-    const modalPhoto = this.state.photos.find(photo => photo.id === id);
-    this.setState({
-      modalData: {
-        largeImageURL: modalPhoto.largeImageURL,
-        tags: modalPhoto.tags,
-      },
+  const onSchowModal = id => {
+    toggleModal();
+    const modalPhoto = photos.find(photo => photo.id === id);
+    setModalData({
+      largeImageURL: modalPhoto.largeImageURL,
+      tags: modalPhoto.tags,
     });
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      currentPage: prevState.currentPage + 1,
-    }));
+  const loadMore = () => {
+    setIsLoading(true);
+    setCurrentPage(prevState => prevState + 1);
     scroll.scrollMore(150);
   };
 
-  render() {
-    const { error, photos, isLoading, showModal, modalData, totalHits } =
-      this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        {error && toast.error(`Something went wrong! ${error.message}`)}
+  return (
+    <>
+      <Searchbar onSubmit={handleFormSubmit} />
+      {error && toast.error(`Something went wrong! ${error.message}`)}
 
-        {photos.length > 0 && (
-          <>
-            <ImageGallery openModal={this.onSchowModal} photos={photos} />
-            {photos.length < totalHits && (
-              <Button onClick={this.scrollMore} LoadMore={this.loadMore} />
-            )}
-          </>
-        )}
+      {photos.length > 0 && (
+        <>
+          <ImageGallery openModal={onSchowModal} photos={photos} />
+          {photos.length < totalHits && !isLoading && (
+            <Button onClick={scroll.scrollMore} LoadMore={loadMore} />
+          )}
+        </>
+      )}
 
-        {isLoading && <Loader />}
+      {isLoading && <Loader />}
 
-        {showModal && (
-          <Modal
-            largeImageURL={modalData.largeImageURL}
-            tags={modalData.tags}
-            closeModal={this.toggleModal}
-          />
-        )}
-        <ToastContainer autoClose={3000} />
-      </>
-    );
-  }
+      {showModal && (
+        <Modal
+          largeImageURL={modalData.largeImageURL}
+          tags={modalData.tags}
+          closeModal={toggleModal}
+        />
+      )}
+      <ToastContainer autoClose={3000} />
+    </>
+  );
 }
